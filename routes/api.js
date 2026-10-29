@@ -264,20 +264,20 @@ router.post('/leads', async (req, res) => {
 // ----------------------------------------------------
 router.get('/admin/stats', auth, adminOnly, async (req, res) => {
   try {
-    const [[users]] = await db.query('SELECT COUNT(*) AS count FROM users');
-    const [[alumni]] = await db.query('SELECT COUNT(*) AS count FROM alumni_directory');
-    const [[events]] = await db.query('SELECT COUNT(*) AS count FROM events');
-    const [[rsvps]] = await db.query('SELECT COUNT(*) AS count FROM event_rsvps');
-    const [[contacts]] = await db.query('SELECT COUNT(*) AS count FROM contact_requests');
+    const [usersRows]    = await db.query('SELECT COUNT(*) AS count FROM users');
+    const [alumniRows]   = await db.query('SELECT COUNT(*) AS count FROM alumni_directory');
+    const [eventsRows]   = await db.query('SELECT COUNT(*) AS count FROM events');
+    const [rsvpsRows]    = await db.query('SELECT COUNT(*) AS count FROM event_rsvps');
+    const [contactsRows] = await db.query('SELECT COUNT(*) AS count FROM contact_requests');
 
     res.json({
       success: true,
       stats: {
-        totalUsers: users.count,
-        totalAlumni: alumni.count,
-        totalEvents: events.count,
-        totalRsvps: rsvps.count,
-        totalContactRequests: contacts.count
+        totalUsers:           Number(usersRows[0].count),
+        totalAlumni:          Number(alumniRows[0].count),
+        totalEvents:          Number(eventsRows[0].count),
+        totalRsvps:           Number(rsvpsRows[0].count),
+        totalContactRequests: Number(contactsRows[0].count)
       }
     });
   } catch (error) {
