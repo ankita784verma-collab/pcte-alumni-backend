@@ -1,10 +1,10 @@
 // Single source of truth for the JWT signing secret.
-const secret = process.env.JWT_SECRET;
+// If JWT_SECRET is missing we fall back to a random per-process secret instead of
+// crashing the deploy (logins just reset on each restart). Set JWT_SECRET on Render!
+const crypto = require('crypto');
+let secret = process.env.JWT_SECRET;
 if (!secret) {
-  if (process.env.NODE_ENV === 'production') {
-    console.error('FATAL: JWT_SECRET must be set in production.');
-    process.exit(1);
-  }
-  console.warn('WARNING: JWT_SECRET not set - using an insecure dev default.');
+  secret = crypto.randomBytes(48).toString('hex');
+  console.warn('WARNING: JWT_SECRET is not set - using a temporary random secret. Set JWT_SECRET in Render > Environment.');
 }
-module.exports = secret || 'dev_only_insecure_secret_change_me';
+module.exports = secret;
