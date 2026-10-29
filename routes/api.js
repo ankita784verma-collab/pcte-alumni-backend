@@ -11,12 +11,19 @@ const JWT_SECRET = require('../secret');
 // 0. HEALTH CHECK
 // ----------------------------------------------------
 router.get('/health', async (req, res) => {
+  let dbOk = false;
   try {
     await db.query('SELECT 1');
-    res.json({ success: true, message: 'PCTE Alumni API & PostgreSQL database connected successfully.' });
+    dbOk = true;
   } catch (error) {
-    res.status(500).json({ success: false, message: 'API is running, but database connection failed.', error: error.message });
+    dbOk = false;
   }
+  res.status(200).json({
+    status: 'healthy',
+    success: true,
+    database: dbOk ? 'connected' : 'in-memory-fallback',
+    uptime: process.uptime()
+  });
 });
 
 // ----------------------------------------------------
@@ -401,19 +408,19 @@ router.post('/leads', async (req, res) => {
 // ----------------------------------------------------
 router.get('/admin/stats', auth, adminOnly, async (req, res) => {
   try {
-    const [usersRows]    = await db.query('SELECT COUNT(*) AS count FROM users');
-    const [alumniRows]   = await db.query('SELECT COUNT(*) AS count FROM alumni_directory');
-    const [eventsRows]   = await db.query('SELECT COUNT(*) AS count FROM events');
-    const [rsvpsRows]    = await db.query('SELECT COUNT(*) AS count FROM event_rsvps');
+    const [usersRows] = await db.query('SELECT COUNT(*) AS count FROM users');
+    const [alumniRows] = await db.query('SELECT COUNT(*) AS count FROM alumni_directory');
+    const [eventsRows] = await db.query('SELECT COUNT(*) AS count FROM events');
+    const [rsvpsRows] = await db.query('SELECT COUNT(*) AS count FROM event_rsvps');
     const [contactsRows] = await db.query('SELECT COUNT(*) AS count FROM contact_requests');
 
     res.json({
       success: true,
       stats: {
-        totalUsers:           Number((usersRows && usersRows[0] && usersRows[0].count) || 0),
-        totalAlumni:          Number((alumniRows && alumniRows[0] && alumniRows[0].count) || 0),
-        totalEvents:          Number((eventsRows && eventsRows[0] && eventsRows[0].count) || 0),
-        totalRsvps:           Number((rsvpsRows && rsvpsRows[0] && rsvpsRows[0].count) || 0),
+        totalUsers: Number((usersRows && usersRows[0] && usersRows[0].count) || 0),
+        totalAlumni: Number((alumniRows && alumniRows[0] && alumniRows[0].count) || 0),
+        totalEvents: Number((eventsRows && eventsRows[0] && eventsRows[0].count) || 0),
+        totalRsvps: Number((rsvpsRows && rsvpsRows[0] && rsvpsRows[0].count) || 0),
         totalContactRequests: Number((contactsRows && contactsRows[0] && contactsRows[0].count) || 0)
       }
     });

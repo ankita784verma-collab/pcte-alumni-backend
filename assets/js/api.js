@@ -20,7 +20,7 @@
   }
 
   const BASE_URL = (
-    window.PCTE_API_URL ||
+    window.PCTE_API_URL || window.PCTE_API_BASE ||
     localStorage.getItem('pcte_api_url') ||
     defaultBase
   ).replace(/\/$/, '');

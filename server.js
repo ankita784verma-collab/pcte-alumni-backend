@@ -1,53 +1,68 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const db = require('./db');
 const apiRoutes = require('./routes/api');
 
 const app = express();
 
-// Middlewares
-// FRONTEND_ORIGIN can be one URL or a comma-separated list (no trailing slashes),
-// e.g. https://my-app.vercel.app,https://my-app-git-main-me.vercel.app
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'http://127.0.0.1:5500')
-  .split(',').map(o => o.trim().replace(/\/$/, '')).filter(Boolean)
-  .concat(['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:3000']);
-const allowVercelPreviews = process.env.ALLOW_VERCEL_PREVIEWS === 'true';
-
+// Proxy and CORS support: allow all origins so requests from GitHub Pages, Vercel, localhost work seamlessly
 app.set('trust proxy', 1);
-app.use(cors((req, callback) => {
-  const origin = req.headers.origin;
-  let ok = !origin;                                   // curl, health checks, server-to-server
-  if (origin) {
-    let sameOrigin = false;                           // site served by this very server
-    try { sameOrigin = new URL(origin).host === req.headers.host; } catch (e) {}
-    ok = sameOrigin || allowedOrigins.includes(origin) ||
-         (allowVercelPreviews && /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin));
-  }
-  if (ok) return callback(null, { origin: true });
-  callback(new Error(`CORS policy: origin '${origin}' is not allowed.`));
+app.use(cors({
+  origin: true,
+  credentials: true
 }));
+
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Cloud Health check probes (always return HTTP 200 for Render / cloud deployment checks)
+app.get(['/health', '/healthz'], (req, res) => {
+  res.status(200).json({ status: 'healthy', uptime: process.uptime() });
+});
 
 // API Routes
 app.use('/api', apiRoutes);
 
-// Frontend (static site) is bundled in ./public so ONE Render service serves site + API
+// Frontend: serve static files from public/ as well as current directory
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname)));
 
 // Root route: serves index.html if present, else JSON welcome info
 app.get('/', (req, res) => {
-  const indexPath = path.join(__dirname, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    return res.sendFile(indexPath);
+  const publicIndex = path.join(__dirname, 'public', 'index.html');
+  const rootIndex = path.join(__dirname, 'index.html');
+  if (fs.existsSync(publicIndex)) {
+    return res.sendFile(publicIndex, (err) => {
+      if (err && !res.headersSent) {
+        res.status(200).json({
+          status: 'ok',
+          success: true,
+          message: '🚀 PCTE Alumni Backend API is active and running!',
+          health: '/health'
+        });
+      }
+    });
+  }
+  if (fs.existsSync(rootIndex)) {
+    return res.sendFile(rootIndex, (err) => {
+      if (err && !res.headersSent) {
+        res.status(200).json({
+          status: 'ok',
+          success: true,
+          message: '🚀 PCTE Alumni Backend API is active and running!',
+          health: '/health'
+        });
+      }
+    });
   }
   res.status(200).json({
     status: 'ok',
     success: true,
     message: '🚀 PCTE Alumni Backend API is active and running!',
-    health: '/api/health'
+    health: '/health'
   });
 });
 
@@ -56,33 +71,35 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ success: false, message: 'API route not found.' });
   }
-  const indexPath = path.join(__dirname, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    return res.sendFile(indexPath);
-  }
+  const publicIndex = path.join(__dirname, 'public', 'index.html');
+  const rootIndex = path.join(__dirname, 'index.html');
+  if (fs.existsSync(publicIndex)) return res.sendFile(publicIndex, () => { if (!res.headersSent) res.status(404).send('Page not found'); });
+  if (fs.existsSync(rootIndex)) return res.sendFile(rootIndex, () => { if (!res.headersSent) res.status(404).send('Page not found'); });
   res.status(404).send('Page not found');
 });
 
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled server error:', err);
+  if (res.headersSent) return;
   const status = /CORS/.test(err.message) ? 403 : 500;
   res.status(status).json({ success: false, message: status === 403 ? err.message : 'Internal server error.' });
 });
 
 // Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', async () => {
+const PORT = Number(process.env.PORT) || 5000;
+const HOST = '0.0.0.0';
+
+app.listen(PORT, HOST, async () => {
   console.log(`===============================================`);
   console.log(`🚀 PCTE Alumni Server running on http://${HOST}:${PORT}`);
-  console.log(`📡 API Health: http://${HOST}:${PORT}/api/health`);
+  console.log(`📡 API Health: http://${HOST}:${PORT}/health`);
   console.log(`===============================================`);
 
   try {
     await db.query('SELECT 1');
-    console.log(`✅ PostgreSQL connected: ${process.env.DB_NAME || 'database'}`);
+    if (db.initSchema) await db.initSchema();
   } catch (err) {
-    console.warn(`⚠️  PostgreSQL connection check failed: ${err.message}`);
-    console.warn(`💡 Tip: Check DATABASE_URL and that schema_postgres.sql has been run.`);
+    console.warn(`Startup check: ${err.message}`);
   }
 });

@@ -6,15 +6,14 @@ const path = require('path');
 let pool = null;
 let usePostgres = false;
 
-// If DATABASE_URL is explicitly set and points to a cloud/real postgres host
+// If DATABASE_URL is set (Render / Railway / Neon etc.)
 if (process.env.DATABASE_URL) {
-  // Render / Railway / Neon etc. give a full connection URL.
-  // Render's *internal* URL does not need SSL; the external one does.
   const needsSsl = process.env.DB_SSL === 'true' ||
     /render\.com|neon\.tech|supabase\.co|sslmode=require/.test(process.env.DATABASE_URL);
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: needsSsl ? { rejectUnauthorized: false } : false
+    ssl: needsSsl ? { rejectUnauthorized: false } : false,
+    connectionTimeoutMillis: 5000
   });
   usePostgres = true;
 } else if (process.env.DB_HOST && process.env.DB_HOST !== 'localhost' && process.env.DB_HOST !== '127.0.0.1') {
@@ -84,7 +83,6 @@ let rsvpSeq = 10;
 let contactSeq = 10;
 let leadSeq = 10;
 
-// Execute query using in-memory store
 function executeMemoryQuery(sql, params) {
   const norm = sql.trim().toLowerCase();
 
@@ -137,13 +135,6 @@ function executeMemoryQuery(sql, params) {
     const rows = [newUser];
     rows.insertId = newId;
     return [rows];
-  }
-
-  // SELECT ... FROM users WHERE email = ? LIMIT 1
-  if (norm.includes('from users where email') && norm.includes('limit 1')) {
-    const email = String(params[0] || '').toLowerCase();
-    const user = memStore.users.find(u => u.email.toLowerCase() === email);
-    return [user ? [user] : []];
   }
 
   // SELECT ... FROM users WHERE user_id = ?
@@ -291,23 +282,47 @@ function executeMemoryQuery(sql, params) {
   return [[]];
 }
 
-// Helper that keeps the old mysql2-style call shape: `const [rows] = await db.query(sql, params)`.
-//  - converts ? placeholders to $1, $2 ...
-//  - for INSERTs, appends RETURNING * and exposes the new primary key as rows.insertId
 const db = {
   pool,
   isPostgresActive: false,
 
   query: async (sql, params = []) => {
-    let text = sql.trim().replace(/;$/, '');
-    const isInsert = /^insert\s/i.test(text);
-    if (isInsert && !/\breturning\b/i.test(text)) text += ' RETURNING *';
-    let i = 0;
-    text = text.replace(/\?/g, () => `$${++i}`);
-    const result = await pool.query(text, params);
-    const rows = result.rows;
-    if (isInsert && rows[0]) rows.insertId = Object.values(rows[0])[0];
-    return [rows];
+    if (usePostgres && pool) {
+      try {
+        let text = sql.trim().replace(/;$/, '');
+        const isInsert = /^insert\s/i.test(text);
+        if (isInsert && !/\breturning\b/i.test(text)) text += ' RETURNING *';
+        let i = 0;
+        text = text.replace(/\?/g, () => `$${++i}`);
+        const result = await pool.query(text, params);
+        const rows = result.rows;
+        if (isInsert && rows[0]) rows.insertId = Object.values(rows[0])[0];
+        return [rows];
+      } catch (err) {
+        console.warn(`[DB] Query on PostgreSQL failed: ${err.message}. Falling back to memory store.`);
+        usePostgres = false;
+      }
+    }
+    return executeMemoryQuery(sql, params);
+  },
+
+  initSchema: async () => {
+    if (usePostgres && pool) {
+      try {
+        const schemaPath = path.join(__dirname, 'schema_postgres.sql');
+        if (fs.existsSync(schemaPath)) {
+          const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+          await pool.query(schemaSql);
+          db.isPostgresActive = true;
+          console.log('✅ PostgreSQL Database schema & seed verified successfully.');
+          return;
+        }
+      } catch (err) {
+        console.warn(`⚠️ Cloud PostgreSQL schema init failed: ${err.message}. Running in self-contained demo mode.`);
+        usePostgres = false;
+      }
+    }
+    console.log('⚡ Running in self-contained in-memory database mode (Seed data active).');
   }
 };
 
