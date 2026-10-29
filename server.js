@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const db = require('./db');
 const apiRoutes = require('./routes/api');
@@ -15,14 +16,17 @@ const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'http://127.0.0.1:5500')
 const allowVercelPreviews = process.env.ALLOW_VERCEL_PREVIEWS === 'true';
 
 app.set('trust proxy', 1);
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (curl, health checks, server-to-server)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    if (allowVercelPreviews && /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return callback(null, true);
-    callback(new Error(`CORS policy: origin '${origin}' is not allowed.`));
+app.use(cors((req, callback) => {
+  const origin = req.headers.origin;
+  let ok = !origin;                                   // curl, health checks, server-to-server
+  if (origin) {
+    let sameOrigin = false;                           // site served by this very server
+    try { sameOrigin = new URL(origin).host === req.headers.host; } catch (e) {}
+    ok = sameOrigin || allowedOrigins.includes(origin) ||
+         (allowVercelPreviews && /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin));
   }
+  if (ok) return callback(null, { origin: true });
+  callback(new Error(`CORS policy: origin '${origin}' is not allowed.`));
 }));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -30,10 +34,8 @@ app.use(express.urlencoded({ extended: true }));
 // API Routes
 app.use('/api', apiRoutes);
 
-// Root route: simple status (the frontend is hosted separately on Vercel)
-app.get('/', (req, res) => {
-  res.json({ success: true, service: 'PCTE Alumni API', health: '/api/health' });
-});
+// Frontend (static site) is bundled in ./public so ONE Render service serves site + API
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 404 handler for unmatched API routes
 app.use((req, res, next) => {

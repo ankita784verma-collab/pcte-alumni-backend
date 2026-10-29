@@ -1,38 +1,27 @@
-# Deploy the backend on Render (free) and connect it to the Vercel frontend
+# Deploy (one Render service = website + API + database)
 
-## 1. Push the backend to GitHub
-The `backend/` folder is already a git repo pointing at
-`github.com/ankita784verma-collab/pcte-alumni-backend`.
-```
-cd backend
-git add -A && git commit -m "Postgres fixes + deploy config" && git push origin main
-```
+This backend folder now contains the website in `public/` and serves it itself,
+so you only deploy THIS folder. No CORS or URL settings needed.
 
-## 2. Create it on Render
-Easiest: Render dashboard -> **New -> Blueprint** -> pick `pcte-alumni-backend`.
-`render.yaml` creates the web service + a free PostgreSQL database and wires
-`DATABASE_URL` and a random `JWT_SECRET` for you.
-When asked, set **FRONTEND_ORIGIN** = your Vercel URL (e.g. `https://your-app.vercel.app`, no trailing slash).
+## 1. Push this folder to GitHub (replace repo contents)
+    git add -A && git commit -m "Full-stack deploy" && git push origin main
 
-(Manual alternative: New Postgres -> New Web Service, build `npm install`, start `npm start`,
-env vars `DATABASE_URL` (Internal URL), `JWT_SECRET`, `NODE_ENV=production`, `FRONTEND_ORIGIN`.)
+## 2. Render
+Web Service settings: Root Directory = (empty), Build = `npm install`, Start = `npm start`.
+Environment variables:
+- `DATABASE_URL` = Internal Database URL of your Render PostgreSQL
+- `JWT_SECRET`   = any long random string
+- `NODE_ENV`     = production
+(Or use New -> Blueprint with render.yaml, which sets all of this.)
 
-## 3. Create the tables (once)
-Render -> your database -> **Connect -> External** -> copy the PSQL command, then:
-```
-psql "<external connection string>" -f schema_postgres.sql
-```
-Check `https://<your-service>.onrender.com/api/health` -> `"success": true`.
+## 3. Create tables (once)
+    psql "<External Database URL>" -f schema_postgres.sql
+(or paste the file's contents into any SQL console connected to that database)
 
-## 4. Point the frontend at the backend
-Edit `frontend/assets/js/config.js`: set `PRODUCTION_API` to
-`https://<your-service>.onrender.com/api`, commit and push the frontend (Vercel redeploys).
+## 4. Open https://<your-service>.onrender.com
+Register / log in. Admin: admin@pcte.edu.in / admin123 (change it!).
+Free tier sleeps after ~15 min: open the URL 1-2 min before your demo to wake it.
 
-## 5. Admin login
-Seed admin: `admin@pcte.edu.in` / `admin123`. **Change this password right away** (or create your own admin):
-```sql
-UPDATE users SET role = 'Admin' WHERE email = 'you@example.com';
-```
-Admins cannot be created from the public register form (by design).
-
-Note: Render's free web service sleeps after ~15 min idle; the first request can take ~30 s.
+## Optional: keep the Vercel site
+Set PRODUCTION_API in public/assets/js/config.js to https://<your-service>.onrender.com/api
+and put your Vercel URL(s) in FRONTEND_ORIGIN (comma separated).

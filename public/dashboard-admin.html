@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Center - PCTE Alumni Talks</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Stylesheet -->
+  <link href="assets/css/style.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <i class="bi bi-shield-lock-fill text-danger fs-3 me-2"></i>
+        <span>PCTE <span class="text-danger">Admin Console</span></span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <a href="admin-directory.html" class="btn btn-nav-outline btn-sm">Directory Manager</a>
+        <button onclick="logoutAdmin()" class="btn btn-danger btn-sm rounded-pill px-3">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Admin Content Section -->
+  <main class="flex-grow-1 py-5">
+    <div class="container">
+      
+      <!-- Page Banner -->
+      <div class="dark-cta-card p-4 p-md-5 mb-4 shadow-sm">
+        <h1 class="fw-bold fs-2 text-white mb-2">Administrator Control Center</h1>
+        <p class="text-white-50 mb-0">Manage platform users, verify alumni registrations, and control public directory records.</p>
+      </div>
+
+      <!-- Quick Stats Row -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm p-4 text-center h-100">
+            <div class="text-danger fs-1 mb-2"><i class="bi bi-people-fill"></i></div>
+            <h3 class="fw-bold mb-1" id="statUsers">–</h3>
+            <p class="text-muted small mb-0">Registered Users</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm p-4 text-center h-100">
+            <div class="text-danger fs-1 mb-2"><i class="bi bi-mic-fill"></i></div>
+            <h3 class="fw-bold mb-1" id="statEvents">–</h3>
+            <p class="text-muted small mb-0">Talk Sessions Scheduled</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm p-4 text-center h-100">
+            <div class="text-danger fs-1 mb-2"><i class="bi bi-hourglass-split"></i></div>
+            <h3 class="fw-bold mb-1" id="statContacts">–</h3>
+            <p class="text-muted small mb-0">Contact Requests Received</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions / Navigation Cards -->
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="card p-4 border-0 shadow-sm h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill text-danger me-2"></i> Manage Directory Records</h5>
+            <p class="text-muted small mb-4">Add, edit, or delete alumni profiles displayed across the public-facing directory using full CRUD capabilities.</p>
+            <a href="admin-directory.html" class="btn btn-nav-primary btn-sm mt-auto w-100 py-2 text-decoration-none">Open Directory Manager</a>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-4 border-0 shadow-sm h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-shield-check text-danger me-2"></i> Membership Verifications</h5>
+            <p class="text-muted small mb-4">Review pending student and alumni signup requests submitted via registration forms.</p>
+            <button onclick="alert('All current members are verified.')" class="btn btn-outline-dark btn-sm mt-auto w-100 py-2">Review Requests (8 Pending)</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Minimal Footer -->
+  <footer class="mt-auto">
+    <div class="container text-center text-white-50 small">
+      &copy; 2026 PCTE Alumni Talks. All rights reserved.
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script>
+    function logoutAdmin() {
+      localStorage.removeItem('pcte_logged_user');
+      window.location.href = "login.html";
+    }
+    if (API.requireLogin(true)) {
+      API.getAdminStats().then(st => {
+        document.getElementById('statUsers').innerText = st.totalUsers;
+        document.getElementById('statEvents').innerText = st.totalEvents;
+        document.getElementById('statContacts').innerText = st.totalContactRequests;
+      }).catch(err => {
+        if (/log in|Admin access/i.test(err.message)) window.location.href = 'login.html';
+      });
+    }
+  </script>
+</body>
+</html>
