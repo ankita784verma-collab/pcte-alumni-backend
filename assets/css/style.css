@@ -1,0 +1,254 @@
+/* ================================================================= *
+   PCTE Alumni Talks - Production-Safe Enterprise Stylesheet
+   ================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --pcte-red: #dc3545;
+  --pcte-red-dark: #b02a37;
+  --pcte-dark-nav: #0b0f19;
+  --pcte-light-bg: #f8fafc;
+  --pcte-card-bg: #ffffff;
+  --pcte-text-dark: #0f172a;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: var(--pcte-text-dark);
+  background-color: var(--pcte-light-bg) !important;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ==========================================
+   1. FORCE DARK HEADER NAVBAR
+   ========================================== */
+nav.navbar, 
+.navbar.navbar-expand-lg {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background-color: #0b0f19 !important;
+  background: #0b0f19 !important;
+  padding: 16px 0 !important;
+  border-bottom: 3px solid var(--pcte-red) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.navbar-brand {
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: #ffffff !important;
+}
+
+.navbar-brand span.text-danger {
+  color: var(--pcte-red) !important;
+}
+
+.navbar-nav .nav-link {
+  color: #cbd5e1 !important;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 8px 16px !important;
+  transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+  color: #ffffff !important;
+  background-color: rgba(220, 53, 69, 0.2) !important;
+  border-radius: 50px;
+}
+
+/* Header Buttons */
+.btn-nav-outline {
+  color: #ffffff !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 50px !important;
+  padding: 8px 22px !important;
+  font-weight: 600;
+  background: transparent !important;
+  transition: all 0.3s ease;
+}
+
+.btn-nav-outline:hover {
+  background-color: #ffffff !important;
+  color: #0b0f19 !important;
+}
+
+.btn-nav-primary {
+  background: linear-gradient(135deg, var(--pcte-red), var(--pcte-red-dark)) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 50px !important;
+  padding: 8px 24px !important;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(220, 53, 69, 0.35);
+  display: inline-block;
+  text-decoration: none !important;
+  transition: all 0.3s ease;
+}
+
+.btn-nav-primary:hover {
+  background: linear-gradient(135deg, #c82333, #98222e) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(220, 53, 69, 0.45);
+}
+
+/* Hero Section Styling */
+.hero-section {
+  padding: 60px 0 70px 0;
+  background: linear-gradient(180deg, #ffffff 0%, var(--pcte-light-bg) 100%);
+}
+
+.hero-title {
+  font-weight: 800;
+  font-size: 2.75rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--pcte-text-dark);
+}
+
+.highlight-text {
+  color: var(--pcte-red);
+}
+
+.hero-input-group {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 50px;
+  padding: 6px;
+  max-width: 480px;
+}
+
+.hero-image-frame {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+  border: 4px solid #ffffff;
+}
+
+/* ==========================================
+   2. CARDS & GLOW EFFECTS
+   ========================================== */
+.card {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  background-color: #ffffff !important;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px -10px rgba(220, 53, 69, 0.25), 0 0 20px rgba(220, 53, 69, 0.1) !important;
+  border-color: rgba(220, 53, 69, 0.5) !important;
+}
+
+/* ==========================================
+   3. FLOATING CHAT WIDGET
+   ========================================== */
+.fab-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+  padding: 12px 22px;
+  border-radius: 50px;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  z-index: 9999;
+  transition: all 0.3s ease;
+}
+
+.fab-widget:hover {
+  color: #ffffff !important;
+  background-color: #059669 !important;
+  transform: translateY(-3px);
+}
+
+/* ==========================================
+   4. FORCE SOLID DARK FOOTER
+   ========================================== */
+footer, 
+footer.mt-auto {
+  background-color: #0b0f19 !important;
+  background: #0b0f19 !important;
+  color: #94a3b8 !important;
+  padding: 70px 0 30px 0 !important;
+  border-top: 4px solid var(--pcte-red) !important;
+  margin-top: auto !important;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2);
+}
+
+footer h6, 
+footer .fw-bold,
+footer span.fw-bold {
+  color: #ffffff !important;
+}
+
+footer p, 
+footer small, 
+footer li {
+  color: #cbd5e1 !important;
+}
+
+footer a {
+  color: #cbd5e1 !important;
+  text-decoration: none !important;
+  transition: all 0.3s ease;
+}
+
+footer a:hover {
+  color: #ffffff !important;
+  padding-left: 4px;
+}
+
+footer hr {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Fix for Dark CTA Hero Cards to ensure text is always high-contrast white */
+.dark-cta-card {
+  background: linear-gradient(135deg, #0b0f19 0%, #1a2238 100%);
+  color: #ffffff !important;
+  border-radius: 1rem;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.dark-cta-card h1,
+.dark-cta-card h2,
+.dark-cta-card h3,
+.dark-cta-card p {
+  color: #ffffff !important;
+}
+
+.dark-cta-card .text-white-50 {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Professional Badge Styling */
+.badge-pill-light {
+  background-color: rgba(220, 53, 69, 0.15);
+  color: #dc3545;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 50rem;
+  font-size: 0.85rem;
+}
+
+/* Ensure full width responsiveness for the dark CTA map section */
+.dark-cta-section {
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 1rem 3rem rgba(0,0,0,0.175);
+}

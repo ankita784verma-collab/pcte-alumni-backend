@@ -37,12 +37,30 @@ app.use('/api', apiRoutes);
 // Frontend (static site) is bundled in ./public so ONE Render service serves site + API
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 404 handler for unmatched API routes
+// Root route: serves index.html if present, else JSON welcome info
+app.get('/', (req, res) => {
+  const indexPath = path.join(__dirname, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  res.status(200).json({
+    status: 'ok',
+    success: true,
+    message: '🚀 PCTE Alumni Backend API is active and running!',
+    health: '/api/health'
+  });
+});
+
+// Catch-all: for non-API requests, fallback to index.html or 404
 app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ success: false, message: 'API route not found.' });
   }
-  next();
+  const indexPath = path.join(__dirname, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  res.status(404).send('Page not found');
 });
 
 // Global error handler
@@ -56,12 +74,10 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', async () => {
   console.log(`===============================================`);
-  console.log(`🚀 PCTE Alumni Backend running on port ${PORT}`);
-  console.log(`🔗 Local URL: http://localhost:${PORT}`);
-  console.log(`📡 API Health: http://localhost:${PORT}/api/health`);
+  console.log(`🚀 PCTE Alumni Server running on http://${HOST}:${PORT}`);
+  console.log(`📡 API Health: http://${HOST}:${PORT}/api/health`);
   console.log(`===============================================`);
 
-  // Test MySQL connection
   try {
     await db.query('SELECT 1');
     console.log(`✅ PostgreSQL connected: ${process.env.DB_NAME || 'database'}`);

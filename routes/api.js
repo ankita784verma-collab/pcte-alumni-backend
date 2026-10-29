@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
 
     // Check existing email
     const [existing] = await db.query('SELECT user_id FROM users WHERE email = ?', [userEmail]);
-    if (existing.length > 0) {
+    if (existing && existing.length > 0) {
       return res.status(409).json({ success: false, message: 'An account with this email already exists. Please log in.' });
     }
 
@@ -51,8 +51,9 @@ router.post('/register', async (req, res) => {
       [userName, userEmail, passwordHash, userRole, batch_program || null, job_title || null]
     );
 
+    const insertedId = result.insertId || (result[0] && result[0].user_id);
     const newUser = {
-      id: result.insertId,
+      id: insertedId,
       name: userName,
       email: userEmail,
       role: userRole
@@ -85,18 +86,16 @@ router.post('/login', async (req, res) => {
     }
 
     const [rows] = await db.query(
-      `SELECT user_id, full_name, email, password_hash, role, batch_program, job_title, photo_url
+      `SELECT user_id, full_name, email, password_hash, role, batch_program, job_title, bio, photo_url
        FROM users WHERE email = ? LIMIT 1`,
       [userEmail]
     );
 
-    if (rows.length === 0) {
+    if (!rows || rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Account not found! Please register first.' });
     }
 
     const user = rows[0];
-
-    // Always use bcrypt for secure password comparison
     const passwordValid = await bcrypt.compare(String(password), user.password_hash);
 
     if (!passwordValid) {
@@ -116,6 +115,7 @@ router.post('/login', async (req, res) => {
         role: user.role,
         batch_program: user.batch_program,
         job_title: user.job_title,
+        bio: user.bio,
         photo_url: user.photo_url
       }
     });
@@ -135,12 +135,69 @@ router.get('/me', auth, async (req, res) => {
        FROM users WHERE user_id = ?`,
       [req.user.id]
     );
-    if (!rows.length) {
+    if (!rows || !rows.length) {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
-    res.json({ success: true, user: rows[0] });
+    const u = rows[0];
+    res.json({
+      success: true,
+      user: {
+        id: u.user_id,
+        name: u.full_name,
+        email: u.email,
+        role: u.role,
+        batch_program: u.batch_program,
+        job_title: u.job_title,
+        bio: u.bio,
+        photo_url: u.photo_url,
+        created_at: u.created_at
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Could not retrieve profile.' });
+  }
+});
+
+router.put('/me', auth, async (req, res) => {
+  try {
+    const { name, full_name, job_title, batch_program, bio, photo_url } = req.body;
+    const updateName = (full_name || name || '').trim();
+
+    await db.query(
+      `UPDATE users
+       SET full_name = COALESCE(NULLIF(?, ''), full_name),
+           job_title = COALESCE(?, job_title),
+           batch_program = COALESCE(?, batch_program),
+           bio = COALESCE(?, bio),
+           photo_url = COALESCE(?, photo_url)
+       WHERE user_id = ?`,
+      [updateName, job_title || null, batch_program || null, bio || null, photo_url || null, req.user.id]
+    );
+
+    const [rows] = await db.query(
+      `SELECT user_id, full_name, email, role, batch_program, job_title, bio, photo_url, created_at
+       FROM users WHERE user_id = ?`,
+      [req.user.id]
+    );
+
+    const u = rows[0];
+    res.json({
+      success: true,
+      message: 'Profile updated successfully!',
+      user: {
+        id: u.user_id,
+        name: u.full_name,
+        email: u.email,
+        role: u.role,
+        batch_program: u.batch_program,
+        job_title: u.job_title,
+        bio: u.bio,
+        photo_url: u.photo_url
+      }
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ success: false, message: 'Could not update profile.' });
   }
 });
 
@@ -153,7 +210,21 @@ router.get('/alumni', async (req, res) => {
       `SELECT alumni_id, user_id, name, role_company, batch_degree, photo_url, created_at
        FROM alumni_directory ORDER BY alumni_id ASC`
     );
-    res.json({ success: true, data: rows });
+    // Format to match both { id, name, role, batch, photo } and { alumni_id, ... }
+    const formatted = (rows || []).map(r => ({
+      id: r.alumni_id,
+      alumni_id: r.alumni_id,
+      user_id: r.user_id,
+      name: r.name,
+      role: r.role_company,
+      role_company: r.role_company,
+      batch: r.batch_degree,
+      batch_degree: r.batch_degree,
+      photo: r.photo_url,
+      photo_url: r.photo_url,
+      created_at: r.created_at
+    }));
+    res.json({ success: true, data: formatted });
   } catch (error) {
     console.error('Alumni directory error:', error);
     res.status(500).json({ success: false, message: 'Could not load alumni directory.' });
@@ -162,17 +233,42 @@ router.get('/alumni', async (req, res) => {
 
 router.post('/alumni', auth, adminOnly, async (req, res) => {
   try {
-    const { name, role_company, batch_degree, photo_url } = req.body;
-    if (!name || !role_company || !batch_degree) {
+    const { name, role_company, role, batch_degree, batch, photo_url, photo } = req.body;
+    const alName = name;
+    const alRole = role_company || role;
+    const alBatch = batch_degree || batch;
+    const alPhoto = photo_url || photo || null;
+
+    if (!alName || !alRole || !alBatch) {
       return res.status(400).json({ success: false, message: 'Name, role/company, and batch/degree are required.' });
     }
+
     const [result] = await db.query(
       `INSERT INTO alumni_directory (name, role_company, batch_degree, photo_url)
        VALUES (?, ?, ?, ?)`,
-      [name, role_company, batch_degree, photo_url || null]
+      [alName, alRole, alBatch, alPhoto]
     );
-    res.status(201).json({ success: true, message: 'Alumnus added to directory.', id: result.insertId });
+
+    const insertedId = result.insertId || (result[0] && result[0].alumni_id);
+
+    res.status(201).json({
+      success: true,
+      message: 'Alumnus added to directory.',
+      id: insertedId,
+      data: {
+        id: insertedId,
+        alumni_id: insertedId,
+        name: alName,
+        role: alRole,
+        role_company: alRole,
+        batch: alBatch,
+        batch_degree: alBatch,
+        photo: alPhoto,
+        photo_url: alPhoto
+      }
+    });
   } catch (error) {
+    console.error('Add alumni error:', error);
     res.status(500).json({ success: false, message: 'Could not add alumni record.' });
   }
 });
@@ -211,7 +307,7 @@ router.get('/events', async (req, res) => {
       `SELECT event_id, title, description, event_date, speaker_name, location
        FROM events ORDER BY event_date ASC`
     );
-    res.json({ success: true, data: rows });
+    res.json({ success: true, data: rows || [] });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Could not load events.' });
   }
@@ -224,7 +320,7 @@ router.post('/events/:id/rsvp', auth, async (req, res) => {
       'SELECT rsvp_id FROM event_rsvps WHERE event_id = ? AND user_id = ?',
       [eventId, req.user.id]
     );
-    if (existing.length > 0) {
+    if (existing && existing.length > 0) {
       return res.status(409).json({ success: false, message: 'You have already registered for this event.' });
     }
 
@@ -238,22 +334,45 @@ router.post('/events/:id/rsvp', auth, async (req, res) => {
   }
 });
 
+router.get('/user/rsvps', auth, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT e.event_id, e.title, e.description, e.event_date, e.speaker_name, e.location, r.registered_at
+       FROM event_rsvps r
+       JOIN events e ON r.event_id = e.event_id
+       WHERE r.user_id = ?
+       ORDER BY e.event_date ASC`,
+      [req.user.id]
+    );
+    res.json({ success: true, data: rows || [] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Could not load your RSVPs.' });
+  }
+});
+
 // ----------------------------------------------------
 // 6. CONTACT REQUESTS & LEADS
 // ----------------------------------------------------
 router.post('/contact', async (req, res) => {
   try {
-    const { full_name, email, mobile_number, batch_program } = req.body;
-    if (!full_name || !email || !mobile_number || !batch_program) {
+    const { full_name, name, email, mobile_number, mobile, phone, batch_program, batch } = req.body;
+    const cName = (full_name || name || '').trim();
+    const cEmail = (email || '').trim().toLowerCase();
+    const cPhone = (mobile_number || mobile || phone || '').trim();
+    const cBatch = (batch_program || batch || '').trim();
+
+    if (!cName || !cEmail || !cPhone || !cBatch) {
       return res.status(400).json({ success: false, message: 'All contact fields are required.' });
     }
+
     await db.query(
       `INSERT INTO contact_requests (full_name, email, mobile_number, batch_program)
        VALUES (?, ?, ?, ?)`,
-      [full_name, email, mobile_number, batch_program]
+      [cName, cEmail, cPhone, cBatch]
     );
-    res.status(201).json({ success: true, message: 'Thank you! Your request has been received.' });
+    res.status(201).json({ success: true, message: 'Thank you! Your request has been received by the PCTE Alumni Relations Office.' });
   } catch (error) {
+    console.error('Contact submit error:', error);
     res.status(500).json({ success: false, message: 'Could not submit contact request.' });
   }
 });
@@ -264,14 +383,15 @@ router.post('/leads', async (req, res) => {
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email address is required.' });
     }
-    // Prevent duplicate lead submissions from the same email
-    const [existing] = await db.query('SELECT lead_id FROM get_started_leads WHERE email = ?', [email.trim().toLowerCase()]);
-    if (existing.length > 0) {
-      return res.status(200).json({ success: true, message: 'You are already on our list!' });
+    const cleanEmail = email.trim().toLowerCase();
+    const [existing] = await db.query('SELECT lead_id FROM get_started_leads WHERE email = ?', [cleanEmail]);
+    if (existing && existing.length > 0) {
+      return res.status(200).json({ success: true, message: 'You are already on our community list!' });
     }
-    await db.query('INSERT INTO get_started_leads (email) VALUES (?)', [email.trim().toLowerCase()]);
-    res.status(201).json({ success: true, message: 'Thank you for your interest!' });
+    await db.query('INSERT INTO get_started_leads (email) VALUES (?)', [cleanEmail]);
+    res.status(201).json({ success: true, message: 'Welcome to PCTE Alumni Talks! Thank you for your interest.' });
   } catch (error) {
+    console.error('Lead submit error:', error);
     res.status(500).json({ success: false, message: 'Could not save lead.' });
   }
 });
@@ -290,14 +410,15 @@ router.get('/admin/stats', auth, adminOnly, async (req, res) => {
     res.json({
       success: true,
       stats: {
-        totalUsers:           Number(usersRows[0].count),
-        totalAlumni:          Number(alumniRows[0].count),
-        totalEvents:          Number(eventsRows[0].count),
-        totalRsvps:           Number(rsvpsRows[0].count),
-        totalContactRequests: Number(contactsRows[0].count)
+        totalUsers:           Number((usersRows && usersRows[0] && usersRows[0].count) || 0),
+        totalAlumni:          Number((alumniRows && alumniRows[0] && alumniRows[0].count) || 0),
+        totalEvents:          Number((eventsRows && eventsRows[0] && eventsRows[0].count) || 0),
+        totalRsvps:           Number((rsvpsRows && rsvpsRows[0] && rsvpsRows[0].count) || 0),
+        totalContactRequests: Number((contactsRows && contactsRows[0] && contactsRows[0].count) || 0)
       }
     });
   } catch (error) {
+    console.error('Admin stats error:', error);
     res.status(500).json({ success: false, message: 'Could not load admin stats.' });
   }
 });

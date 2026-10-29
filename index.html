@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PCTE Alumni Talks - Connecting Graduates Globally</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Stylesheet -->
+  <link href="assets/css/style.css" rel="stylesheet">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- 1. Dark Enterprise Navigation Header -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <i class="bi bi-mortarboard-fill text-danger fs-3 me-2"></i>
+        <span>PCTE <span class="text-danger">Alumni Talks</span></span>
+      </a>
+      <button class="navbar-toggler navbar-dark" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center gap-1">
+          <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="talks.html">Alumni Talks</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Events</a>
+            <ul class="dropdown-menu dropdown-menu-dark">
+              <li><a class="dropdown-item" href="upcoming-events.html">Upcoming Events</a></li>
+              <li><a class="dropdown-item" href="past-events.html">Past Archives</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="directory.html">Directory</a></li>
+          <li class="nav-item"><a class="nav-link" href="gallery.html">Gallery</a></li>
+          <li class="nav-item"><a class="nav-link" href="testimonials.html">Testimonials</a></li>
+          <li class="nav-item ms-lg-3 mt-2 mt-lg-0" id="authNavSlot1">
+            <a class="btn btn-nav-outline" href="login.html">Login</a>
+          </li>
+          <li class="nav-item ms-lg-2 mt-2 mt-lg-0" id="authNavSlot2">
+            <a class="btn btn-nav-primary" href="register.html">Register</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 2. Split Hero Section -->
+  <header class="hero-section">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <span class="badge badge-pill-light mb-3">
+            <i class="bi bi-stars me-1"></i> Accelerating Career Excellence
+          </span>
+          <h1 class="hero-title mb-3">
+            Power up your Alumni Community With: <br>
+            <span class="highlight-text">Enhance Alumni Engagement</span>
+          </h1>
+          <p class="text-muted leading-relaxed mb-4 fs-5">
+            A comprehensive platform to streamline alumni engagement, offering direct mentorship, guest lectures, career opportunities, and lifelong professional networking.
+          </p>
+
+          <!-- Email Input CTA -->
+          <form id="heroEmailForm" class="hero-input-group d-flex align-items-center mb-3 shadow-sm">
+            <input type="email" id="heroEmailInput" class="form-control border-0 bg-transparent shadow-none px-3" placeholder="Enter your student or alumni email" required>
+            <button class="btn btn-nav-primary text-nowrap px-4 py-2" id="heroLeadBtn" type="submit">Get Started</button>
+          </form>
+          <small class="text-muted"><i class="bi bi-shield-check text-success me-1"></i> Join 5,000+ PCTE Graduates Worldwide</small>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="position-relative">
+            <div class="hero-image-frame">
+              <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&h=550&fit=crop" class="w-100 img-fluid" alt="PCTE Campus & Alumni">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. Global Alumni Reach Section -->
+  <section class="py-5 bg-light border-top border-bottom">
+    <div class="container py-4 text-center">
+      <h2 class="fw-bold mb-2">Connect with your Alumni Globally</h2>
+      <p class="text-muted mb-5 col-lg-7 mx-auto">Our graduates lead innovations across top tech hubs and financial capitals worldwide.</p>
+
+      <!-- Global Map Graphic Mockup -->
+      <div class="position-relative p-5 bg-white rounded-4 shadow-sm border overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=1200&h=450&fit=crop" class="w-100 opacity-25 rounded-3" alt="World Map" style="object-fit: cover; max-height: 380px;">
+        
+        <!-- Location Floating Pins -->
+        <div class="position-absolute top-50 start-50 translate-middle w-100 px-4">
+          <div class="d-flex flex-wrap justify-content-center gap-3">
+            <span class="badge bg-white text-dark border shadow-sm px-3 py-2 rounded-pill fs-6"><i class="bi bi-geo-alt-fill text-danger me-1"></i> India</span>
+            <span class="badge bg-white text-dark border shadow-sm px-3 py-2 rounded-pill fs-6"><i class="bi bi-geo-alt-fill text-danger me-1"></i> United States</span>
+            <span class="badge bg-white text-dark border shadow-sm px-3 py-2 rounded-pill fs-6"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Germany</span>
+            <span class="badge bg-white text-dark border shadow-sm px-3 py-2 rounded-pill fs-6"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Japan</span>
+            <span class="badge bg-white text-dark border shadow-sm px-3 py-2 rounded-pill fs-6"><i class="bi bi-geo-alt-fill text-danger me-1"></i> United Kingdom</span>
+            <span class="badge bg-white text-dark border shadow-sm px-3 py-2 rounded-pill fs-6"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Canada</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Take Your Alumni Connection to the Next Level Section -->
+  <section class="py-5">
+    <div class="container">
+      <div class="dark-cta-card dark-cta-section p-4 p-lg-5 text-white">
+        <div class="row align-items-center g-4">
+          
+          <!-- Left Column: Form -->
+          <div class="col-lg-6">
+            <h2 class="fw-bold mb-3 text-white">Take Your Alumni Connection to the Next Level!!</h2>
+            <p class="text-white-50 mb-4">Fill out the form below to connect directly with the PCTE Alumni Relations Office or request session scheduling.</p>
+            
+            <form id="ctaContactForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small text-white-50">Full Name *</label>
+                  <input type="text" id="contactName" class="form-control bg-dark text-white border-secondary" placeholder="Ex: John Doe" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small text-white-50">Email Address *</label>
+                  <input type="email" id="contactEmail" class="form-control bg-dark text-white border-secondary" placeholder="Ex: john@pcte.edu.in" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small text-white-50">Mobile Number *</label>
+                  <input type="tel" id="contactMobile" class="form-control bg-dark text-white border-secondary" placeholder="+91 98765 43210" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small text-white-50">Batch / Program *</label>
+                  <input type="text" id="contactBatch" class="form-control bg-dark text-white border-secondary" placeholder="Ex: B.Tech CSE 2026" required>
+                </div>
+              </div>
+              <button type="submit" id="contactSubmitBtn" class="btn btn-danger w-100 py-3 mt-4 fw-semibold shadow-sm">Submit Request</button>
+            </form>
+          </div>
+
+          <!-- Right Column: Google Map Embed -->
+          <div class="col-lg-6">
+            <div class="ratio ratio-16x9 rounded-4 overflow-hidden border border-secondary shadow-sm">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3424.387912456!2d75.7325!3d30.8658!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzDCsDUxJzU2LjkiTiA3NcKwNDMnNTcuMCJF!5e0!3m2!1sen!2sin!4v1650000000000!5m2!1sen!2sin" 
+                width="100%" 
+                height="100%" 
+                style="border:0;" 
+                allowfullscreen="" 
+                loading="lazy" 
+                referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
+            <p class="small text-white-50 mt-2 mb-0 text-center text-lg-start">
+              <i class="bi bi-geo-alt-fill text-danger me-1"></i> PCTE Group of Institutes, Baddowal, Ludhiana, Punjab
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Floating Chat Widget -->
+  <a href="https://wa.me/919876543210" target="_blank" class="fab-widget">
+    <i class="bi bi-whatsapp fs-5"></i> Chat with us
+  </a>
+
+  <!-- 6. Footer -->
+  <footer class="mt-auto">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 mb-3 mb-lg-0">
+          <a class="d-flex align-items-center text-decoration-none text-light mb-3" href="index.html">
+            <i class="bi bi-mortarboard-fill text-danger fs-3 me-2"></i>
+            <span class="fw-bold fs-5">PCTE <span class="text-danger">Alumni Talks</span></span>
+          </a>
+          <p class="small text-white-50 mb-0">Empowering students and alumni through continuous dialogue, shared industry expertise, and lifelong professional connections.</p>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-6">
+          <h6 class="text-uppercase fw-bold text-light mb-3">Quick Links</h6>
+          <ul class="list-unstyled small">
+            <li class="mb-2"><a href="about.html">About Us</a></li>
+            <li class="mb-2"><a href="talks.html">Alumni Talks</a></li>
+            <li class="mb-2"><a href="directory.html">Directory</a></li>
+            <li class="mb-2"><a href="gallery.html">Gallery</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-6">
+          <h6 class="text-uppercase fw-bold text-light mb-3">Events</h6>
+          <ul class="list-unstyled small">
+            <li class="mb-2"><a href="upcoming-events.html">Upcoming Events</a></li>
+            <li class="mb-2"><a href="past-events.html">Past Archives</a></li>
+            <li class="mb-2"><a href="testimonials.html">Testimonials</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-4 col-md-4">
+          <h6 class="text-uppercase fw-bold text-light mb-3">Institution Contact</h6>
+          <p class="small mb-2"><i class="bi bi-geo-alt-fill text-danger me-2"></i> Campus, Baddowal, Ludhiana, Punjab</p>
+          <p class="small mb-0"><i class="bi bi-envelope-fill text-danger me-2"></i> alumni@pcte.edu.in</p>
+        </div>
+      </div>
+
+      <hr class="border-secondary my-4">
+
+      <div class="row align-items-center">
+        <div class="col-md-6 text-center text-md-start">
+          <p class="small mb-0">&copy; 2026 PCTE Alumni Talks. All rights reserved.</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+          <a href="#" class="fs-5 me-3"><i class="bi bi-linkedin"></i></a>
+          <a href="#" class="fs-5 me-3"><i class="bi bi-twitter-x"></i></a>
+          <a href="#" class="fs-5"><i class="bi bi-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    // Hero email quick lead submission
+    document.getElementById('heroEmailForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const input = document.getElementById('heroEmailInput');
+      const btn = document.getElementById('heroLeadBtn');
+      const email = input.value.trim();
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+
+      try {
+        await API.submitLead(email);
+        alert("Thank you! You have been added to the PCTE Alumni Community.");
+        input.value = '';
+      } catch (err) {
+        alert("Thank you for your interest! Please proceed to Register or Login.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `Get Started`;
+      }
+    });
+
+    // Contact request form submission
+    document.getElementById('ctaContactForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('contactSubmitBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Submitting...`;
+
+      const payload = {
+        name: document.getElementById('contactName').value.trim(),
+        email: document.getElementById('contactEmail').value.trim(),
+        mobile: document.getElementById('contactMobile').value.trim(),
+        batch: document.getElementById('contactBatch').value.trim()
+      };
+
+      try {
+        const res = await API.submitContact(payload);
+        alert(res.message || "Thank you! Your request has been submitted to the PCTE Alumni Relations Office.");
+        this.reset();
+      } catch (err) {
+        alert(err.message || "Request submitted! We will reach out shortly.");
+        this.reset();
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `Submit Request`;
+      }
+    });
+  </script>
+</body>
+</html>
