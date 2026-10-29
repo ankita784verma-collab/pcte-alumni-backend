@@ -7,22 +7,12 @@ const apiRoutes = require('./routes/api');
 
 const app = express();
 
-// Middlewares
-const allowedOrigins = [
-  process.env.FRONTEND_ORIGIN || 'http://127.0.0.1:5500',
-  'http://localhost:5500',
-  'http://localhost:5000',
-  'http://127.0.0.1:5000'
-];
+// Enable CORS for all origins so frontend on GitHub Pages, Vercel, localhost can connect cleanly
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (e.g. Postman, mobile apps, curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS policy: origin '${origin}' is not allowed.`));
-  },
+  origin: true,
   credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -61,12 +51,13 @@ app.listen(PORT, async () => {
   console.log(`📡 API Health: http://localhost:${PORT}/api/health`);
   console.log(`===============================================`);
 
-  // Test MySQL connection
+  // Verify DB connection and auto-prime schema
   try {
     await db.query('SELECT 1');
-    console.log(`✅ MySQL Database connected: ${process.env.DB_NAME || 'pcte_alumni_db'}`);
+    console.log(`✅ PostgreSQL Database connected.`);
+    await db.initSchema();
   } catch (err) {
-    console.warn(`⚠️  MySQL Database connection check failed: ${err.message}`);
-    console.warn(`💡 Tip: Ensure MySQL / XAMPP is running and 'pcte_alumni_db' is imported.`);
+    console.warn(`⚠️ PostgreSQL connection check: ${err.message}`);
+    console.warn(`💡 Tip: Check your DATABASE_URL environment variable.`);
   }
 });
