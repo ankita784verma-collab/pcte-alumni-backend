@@ -1,5 +1,7 @@
 # PCTE Alumni Platform — Node.js Backend
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/ankita784verma-collab/pcte-alumni-backend)
+
 Stack: **HTML/CSS/JavaScript frontend → Node.js + Express backend → MySQL database**.
 
 ## Folder structure
