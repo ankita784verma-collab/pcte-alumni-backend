@@ -77,17 +77,24 @@ VALUES
    'Student / Alumnus', 'Batch 2026 · B.Tech CSE', 'Full-Stack Developer Student')
 ON CONFLICT (email) DO NOTHING;
 
--- Alumni directory seed
-INSERT INTO alumni_directory (name, role_company, batch_degree, photo_url) VALUES
-  ('Rahul Sharma',    'Software Architect at TechCorp',   'Batch 2018 · B.Tech CSE', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop'),
-  ('Priya Verma',     'Financial Analyst, Global Bank',    'Batch 2020 · MBA Finance', 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop'),
+-- Alumni directory seed (only if the table is empty, so re-running is safe)
+INSERT INTO alumni_directory (name, role_company, batch_degree, photo_url)
+SELECT * FROM (VALUES
+  ('Rahul Sharma',    'Software Architect at TechCorp',   'Batch 2018 · B.Tech CSE',  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop'),
+  ('Priya Verma',     'Financial Analyst, Global Bank',   'Batch 2020 · MBA Finance', 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop'),
   ('Amanpreet Singh', 'Product Manager, SaaS Solutions',  'Batch 2019 · BBA',         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'),
   ('Neha Kapoor',     'UI/UX Lead Designer',              'Batch 2021 · BCA',         'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop')
-ON CONFLICT DO NOTHING;
+) AS v(name, role_company, batch_degree, photo_url)
+WHERE NOT EXISTS (SELECT 1 FROM alumni_directory);
 
--- Event seed
-INSERT INTO events (title, description, event_date, speaker_name, location) VALUES
-  ('Navigating Enterprise Cloud & System Architecture',
-   'Keynote session discussing modern microservices, Docker, and cloud deployments.',
-   '2026-11-15 10:00:00', 'Rahul Sharma', 'PCTE Main Auditorium')
-ON CONFLICT DO NOTHING;
+-- Event seed (titles match the cards on upcoming-events.html)
+INSERT INTO events (title, description, event_date, speaker_name, location)
+SELECT * FROM (VALUES
+  ('From PCTE to Silicon Valley: Scaling AI Solutions',
+   'How a PCTE graduate scaled AI products in Silicon Valley.',
+   TIMESTAMP '2026-11-15 10:00:00', 'Rahul Sharma', 'PCTE Main Auditorium'),
+  ('Navigating Corporate Finance & Investment Banking',
+   'Career paths and lessons from investment banking.',
+   TIMESTAMP '2026-11-22 11:00:00', 'Priya Verma', 'PCTE Seminar Hall')
+) AS v(title, description, event_date, speaker_name, location)
+WHERE NOT EXISTS (SELECT 1 FROM events);

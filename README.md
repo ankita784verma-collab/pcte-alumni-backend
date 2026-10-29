@@ -1,6 +1,8 @@
+> **Deploying?** See [DEPLOY.md](DEPLOY.md). The database is PostgreSQL (`schema_postgres.sql`); ignore the MySQL/XAMPP steps below, which are legacy.
+
 # PCTE Alumni Platform — Node.js Backend
 
-Stack: **HTML/CSS/JavaScript frontend → Node.js + Express backend → MySQL database**.
+Stack: **HTML/CSS/JavaScript frontend → Node.js + Express backend → PostgreSQL database**.
 
 ## Folder structure
 
@@ -84,6 +86,6 @@ Log in again to receive a fresh token with the Admin role.
 ## Deployment notes (Render / Railway)
 
 - Set all `.env` values as **Environment Variables** in the hosting dashboard. Do **not** upload `.env` to GitHub.
-- Your MySQL database must be remotely accessible. A local XAMPP instance is **not** reachable from cloud hosts.
+- Your PostgreSQL database must be remotely accessible. A local XAMPP instance is **not** reachable from cloud hosts.
 - Use a cloud MySQL service such as [PlanetScale](https://planetscale.com/), [Railway MySQL](https://railway.app/), or [Aiven](https://aiven.io/) and set `DATABASE_URL` (or individual `DB_*` vars).
 - The `engines` field in `package.json` tells Render which Node version to use (`>=18`).

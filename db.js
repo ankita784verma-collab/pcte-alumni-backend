@@ -4,12 +4,13 @@ const { Pool } = require('pg');
 let pool;
 
 if (process.env.DATABASE_URL) {
-  // Render / Railway / cloud providers give a full connection URL
+  // Render / Railway / Neon etc. give a full connection URL.
+  // Render's *internal* URL does not need SSL; the external one does.
+  const needsSsl = process.env.DB_SSL === 'true' ||
+    /render\.com|neon\.tech|supabase\.co|sslmode=require/.test(process.env.DATABASE_URL);
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL.includes('render.com') || process.env.DB_SSL === 'true'
-      ? { rejectUnauthorized: false }
-      : false
+    ssl: needsSsl ? { rejectUnauthorized: false } : false
   });
 } else {
   pool = new Pool({
@@ -22,16 +23,20 @@ if (process.env.DATABASE_URL) {
   });
 }
 
-// Helper: mirrors the mysql2 promise API so routes need minimal changes
-// mysql2 returns [rows, fields] → we return [rows] from pg
+// Helper that keeps the old mysql2-style call shape: `const [rows] = await db.query(sql, params)`.
+//  - converts ? placeholders to $1, $2 ...
+//  - for INSERTs, appends RETURNING * and exposes the new primary key as rows.insertId
 const db = {
   query: async (sql, params = []) => {
-    // Convert MySQL ? placeholders to PostgreSQL $1, $2, ...
-    let pgSql = sql;
+    let text = sql.trim().replace(/;$/, '');
+    const isInsert = /^insert\s/i.test(text);
+    if (isInsert && !/\breturning\b/i.test(text)) text += ' RETURNING *';
     let i = 0;
-    pgSql = sql.replace(/\?/g, () => `$${++i}`);
-    const result = await pool.query(pgSql, params);
-    return [result.rows];   // [rows] — same shape as mysql2's [rows, fields]
+    text = text.replace(/\?/g, () => `$${++i}`);
+    const result = await pool.query(text, params);
+    const rows = result.rows;
+    if (isInsert && rows[0]) rows.insertId = Object.values(rows[0])[0];
+    return [rows];
   }
 };
 

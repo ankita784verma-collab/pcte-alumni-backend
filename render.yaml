@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: pcte-alumni-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_ORIGIN
+        sync: false   # set to your Vercel URL in the Render dashboard
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pcte-alumni-db
+          property: connectionString
+
+databases:
+  - name: pcte-alumni-db
+    plan: free
+    databaseName: pcte_alumni_db

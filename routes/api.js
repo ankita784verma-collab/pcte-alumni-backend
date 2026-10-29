@@ -5,7 +5,7 @@ const db = require('../db');
 const { auth, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'pcte_alumni_enterprise_secret_key_2026';
+const JWT_SECRET = require('../secret');
 
 // ----------------------------------------------------
 // 0. HEALTH CHECK
@@ -13,9 +13,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'pcte_alumni_enterprise_secret_key_
 router.get('/health', async (req, res) => {
   try {
     await db.query('SELECT 1');
-    res.json({ success: true, message: 'PCTE Alumni API & MySQL Database connected successfully.' });
+    res.json({ success: true, message: 'PCTE Alumni API & PostgreSQL database connected successfully.' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'API is running, but MySQL connection failed.', error: error.message });
+    res.status(500).json({ success: false, message: 'API is running, but database connection failed.', error: error.message });
   }
 });
 
@@ -24,10 +24,11 @@ router.get('/health', async (req, res) => {
 // ----------------------------------------------------
 router.post('/register', async (req, res) => {
   try {
-    const { name, full_name, email, password, role, batch_program, job_title } = req.body;
+    const { name, full_name, email, password, batch_program, job_title } = req.body;
     const userName = (full_name || name || '').trim();
     const userEmail = (email || '').trim().toLowerCase();
-    const userRole = role === 'Admin' ? 'Admin' : 'Student / Alumnus';
+    // Admin accounts can never be self-registered; promote via SQL (see README).
+    const userRole = 'Student / Alumnus';
 
     if (!userName || !userEmail || !password) {
       return res.status(400).json({ success: false, message: 'Full name, email, and password are required.' });
@@ -173,6 +174,22 @@ router.post('/alumni', auth, adminOnly, async (req, res) => {
     res.status(201).json({ success: true, message: 'Alumnus added to directory.', id: result.insertId });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Could not add alumni record.' });
+  }
+});
+
+router.put('/alumni/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const { name, role_company, batch_degree, photo_url } = req.body;
+    if (!name || !role_company || !batch_degree) {
+      return res.status(400).json({ success: false, message: 'Name, role/company, and batch/degree are required.' });
+    }
+    await db.query(
+      `UPDATE alumni_directory SET name = ?, role_company = ?, batch_degree = ?, photo_url = ? WHERE alumni_id = ?`,
+      [name, role_company, batch_degree, photo_url || null, Number(req.params.id)]
+    );
+    res.json({ success: true, message: 'Alumni record updated.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Could not update alumni record.' });
   }
 });
 

@@ -7,7 +7,7 @@ function auth(req, res, next) {
   }
 
   try {
-    const secret = process.env.JWT_SECRET || "pcte_alumni_enterprise_secret_key_2026";
+    const secret = require("../secret");
     req.user = jwt.verify(header.slice(7), secret);
     next();
   } catch (err) {
