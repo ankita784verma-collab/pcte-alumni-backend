@@ -95,13 +95,8 @@ router.post('/login', async (req, res) => {
 
     const user = rows[0];
 
-    // Support both bcrypt-hashed passwords and original seed plain-text passwords (e.g. admin123, user123)
-    let passwordValid = false;
-    if (user.password_hash === password) {
-      passwordValid = true;
-    } else {
-      passwordValid = await bcrypt.compare(password, user.password_hash);
-    }
+    // Always use bcrypt for secure password comparison
+    const passwordValid = await bcrypt.compare(String(password), user.password_hash);
 
     if (!passwordValid) {
       return res.status(401).json({ success: false, message: 'Invalid password. Please try again.' });
@@ -252,7 +247,12 @@ router.post('/leads', async (req, res) => {
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email address is required.' });
     }
-    await db.query('INSERT INTO get_started_leads (email) VALUES (?)', [email]);
+    // Prevent duplicate lead submissions from the same email
+    const [existing] = await db.query('SELECT lead_id FROM get_started_leads WHERE email = ?', [email.trim().toLowerCase()]);
+    if (existing.length > 0) {
+      return res.status(200).json({ success: true, message: 'You are already on our list!' });
+    }
+    await db.query('INSERT INTO get_started_leads (email) VALUES (?)', [email.trim().toLowerCase()]);
     res.status(201).json({ success: true, message: 'Thank you for your interest!' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Could not save lead.' });

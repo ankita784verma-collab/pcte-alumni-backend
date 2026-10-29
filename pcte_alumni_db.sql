@@ -134,8 +134,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `full_name`, `email`, `password_hash`, `role`, `batch_program`, `job_title`, `bio`, `photo_url`, `created_at`) VALUES
-(1, 'Administrator', 'admin@pcte.edu.in', 'admin123', 'Admin', 'Administration', 'System Administrator', NULL, NULL, '2026-10-29 10:48:57'),
-(2, 'Ankita', 'ankita@pcte.edu.in', 'user123', 'Student / Alumnus', 'Batch 2026 · B.Tech CSE', 'Full-Stack Developer Student', NULL, NULL, '2026-10-29 10:48:57');
+(1, 'Administrator', 'admin@pcte.edu.in', '$2b$10$Qn3VU168xnMlxu.M8UZv5erIg7VUDtQVN4e5fVQlkSdI.3j5Lhe0e', 'Admin', 'Administration', 'System Administrator', NULL, NULL, '2026-10-29 10:48:57'),
+(2, 'Ankita', 'ankita@pcte.edu.in', '$2b$10$YHekTLW2vO/nAiYxqjslGu4OzlEOnU6BpO0tCHrnOR8aOlbKIFf76', 'Student / Alumnus', 'Batch 2026 · B.Tech CSE', 'Full-Stack Developer Student', NULL, NULL, '2026-10-29 10:48:57');
+-- Default credentials: admin@pcte.edu.in / admin123  |  ankita@pcte.edu.in / user123
 
 --
 -- Indexes for dumped tables

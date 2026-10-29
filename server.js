@@ -8,7 +8,21 @@ const apiRoutes = require('./routes/api');
 const app = express();
 
 // Middlewares
-app.use(cors());
+const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN || 'http://127.0.0.1:5500',
+  'http://localhost:5500',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000'
+];
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (e.g. Postman, mobile apps, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS policy: origin '${origin}' is not allowed.`));
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,9 +38,12 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../index.html'));
 });
 
-// 404 handler for API routes
-app.use('/api/*', (req, res) => {
-  res.status(404).json({ success: false, message: 'API route not found.' });
+// 404 handler for unmatched API routes
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ success: false, message: 'API route not found.' });
+  }
+  next();
 });
 
 // Global error handler

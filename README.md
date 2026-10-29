@@ -1,50 +1,89 @@
-# PCTE Alumni Talks — Node.js backend
+# PCTE Alumni Platform — Node.js Backend
 
-Simple stack for explaining the project: **HTML/CSS/JavaScript frontend → Node.js + Express backend → MySQL database**.
+Stack: **HTML/CSS/JavaScript frontend → Node.js + Express backend → MySQL database**.
 
 ## Folder structure
-- `server.js`: starts the server and defines the main app
-- `db.js`: connects to MySQL
-- `routes/api.js`: API endpoints for login, registration, alumni, talks and admin stats
-- `middleware/auth.js`: checks login token and admin role
-- `schema.sql`: creates the database tables
-- `.env.example`: local database settings and secret
-- `package.json`: lists Node.js packages
+
+| File / Folder | Purpose |
+|---|---|
+| `server.js` | Entry point — starts Express, wires middleware and routes |
+| `db.js` | MySQL connection pool (supports local XAMPP and cloud URLs) |
+| `routes/api.js` | All API endpoints: auth, alumni directory, events, admin stats |
+| `middleware/auth.js` | JWT verification (`auth`) and role guard (`adminOnly`) |
+| `pcte_alumni_db.sql` | Full DB schema + seed data — import once into phpMyAdmin |
+| `.env.example` | Template for your local `.env` — copy and fill in |
+| `package.json` | Node.js dependencies and scripts |
+
+---
 
 ## Run locally on Windows
-1. Install Node.js LTS.
-2. Start MySQL in XAMPP.
-3. In phpMyAdmin, import `schema.sql`. This schema uses `CREATE TABLE IF NOT EXISTS`; it does not delete existing tables.
-4. Copy `.env.example` to a new file named `.env`. Set your MySQL credentials. Change `JWT_SECRET` to a long random secret.
-5. Open VS Code terminal inside the `backend` folder and run:
 
+### Prerequisites
+- [Node.js LTS](https://nodejs.org/) (≥ 18)
+- XAMPP with MySQL / MariaDB running
+
+### Steps
+
+1. **Import the database**
+   Open phpMyAdmin → create database `pcte_alumni_db` → Import `pcte_alumni_db.sql`.
+
+2. **Configure environment**
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+   Open `.env` and set your MySQL credentials. Change `JWT_SECRET` to a long random string.
+
+3. **Install dependencies**
    ```powershell
    npm install
-   npm start
    ```
 
-6. Open `http://localhost:5000/api/v1/health`. Success means the API and database are connected.
+4. **Start the server**
+   ```powershell
+   npm start          # production-style
+   npm run dev        # auto-restarts on file changes (uses nodemon)
+   ```
+
+5. **Verify**
+   Open `http://localhost:5000/api/health` in your browser.
+   A JSON response with `"success": true` means the API and database are connected.
+
+---
 
 ## API endpoints
-- `GET /api/v1/health` — test API and database
-- `POST /api/v1/register` — create student/alumni account
-- `POST /api/v1/login` — login
-- `GET /api/v1/me` — current user; send `Authorization: Bearer TOKEN`
-- `GET /api/v1/alumni` — alumni directory
-- `GET /api/v1/talks` — events/talks
-- `POST /api/v1/talks/:id/register` — register for a talk; token required
-- `GET /api/v1/my-registrations` — your registered talks; token required
-- `GET /api/v1/admin/stats` — counts; admin token required
 
-## Promote an admin
-Register an account from the website, then in phpMyAdmin run this SQL using that account's email:
-`UPDATE users SET role='admin' WHERE email='your-email@example.com';`
-Log in again to receive an admin token.
+| Method | Endpoint | Auth required | Description |
+|---|---|---|---|
+| GET | `/api/health` | — | API + DB health check |
+| POST | `/api/register` | — | Create student/alumni account |
+| POST | `/api/login` | — | Login, returns JWT token |
+| GET | `/api/me` | Bearer token | Current user profile |
+| GET | `/api/alumni` | — | List alumni directory |
+| POST | `/api/alumni` | Admin token | Add alumni record |
+| DELETE | `/api/alumni/:id` | Admin token | Remove alumni record |
+| GET | `/api/events` | — | List upcoming events |
+| POST | `/api/events/:id/rsvp` | Bearer token | RSVP for an event |
+| POST | `/api/contact` | — | Submit contact/enquiry form |
+| POST | `/api/leads` | — | Save "Get Started" email |
+| GET | `/api/admin/stats` | Admin token | Dashboard counts |
 
-## Connect existing frontend
-In `frontend/assets/js/api.js`, set the API base URL to the deployed backend address, ending in `/api/v1`. For local development it is:
-`http://localhost:5000/api/v1`
-Your current `api.js` only loads the alumni directory; the login and registration HTML forms still need `name` attributes and submit handlers to call `/login` and `/register`. This backend ZIP deliberately does not overwrite your website's design.
+---
 
-## Render note
-Render can run Node.js. Your MySQL database must be reachable from the deployed service; a MySQL server running on your own PC or inside XAMPP is not reachable by Render. Use a separately hosted MySQL database that allows remote connections, or change the database layer to a hosted PostgreSQL service. Set the `.env` values as Render Environment Variables; do not upload `.env` to GitHub.
+## Promote a user to Admin
+
+After registering through the website, run this in phpMyAdmin (SQL tab):
+
+```sql
+UPDATE users SET role = 'Admin' WHERE email = 'your-email@example.com';
+```
+
+Log in again to receive a fresh token with the Admin role.
+
+---
+
+## Deployment notes (Render / Railway)
+
+- Set all `.env` values as **Environment Variables** in the hosting dashboard. Do **not** upload `.env` to GitHub.
+- Your MySQL database must be remotely accessible. A local XAMPP instance is **not** reachable from cloud hosts.
+- Use a cloud MySQL service such as [PlanetScale](https://planetscale.com/), [Railway MySQL](https://railway.app/), or [Aiven](https://aiven.io/) and set `DATABASE_URL` (or individual `DB_*` vars).
+- The `engines` field in `package.json` tells Render which Node version to use (`>=18`).

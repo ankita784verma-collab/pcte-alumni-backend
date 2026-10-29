@@ -16,7 +16,8 @@ function auth(req, res, next) {
 }
 
 function adminOnly(req, res, next) {
-  const role = req.user && req.user.role ? String(req.user.role).toLowerCase() : "";
+  // DB stores role as 'Admin' — compare case-insensitively
+  const role = req.user && req.user.role ? String(req.user.role).trim().toLowerCase() : "";
   if (role !== "admin") {
     return res.status(403).json({ success: false, message: "Admin access required." });
   }
