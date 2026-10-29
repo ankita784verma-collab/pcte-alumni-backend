@@ -23,9 +23,21 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 // API Routes
 app.use('/api', apiRoutes);
 
-// Root route fallback to index.html
+// Root route status info
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../index.html'));
+  res.json({
+    success: true,
+    message: '🚀 PCTE Alumni Backend API is active and running!',
+    health: '/api/health',
+    endpoints: {
+      auth: ['/api/login', '/api/register', '/api/me'],
+      alumni: '/api/alumni',
+      events: '/api/events',
+      admin: '/api/admin/stats',
+      leads: '/api/leads',
+      contact: '/api/contact'
+    }
+  });
 });
 
 // 404 handler for unmatched API routes
