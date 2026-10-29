@@ -13,9 +13,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'pcte_alumni_enterprise_secret_key_
 router.get('/health', async (req, res) => {
   try {
     await db.query('SELECT 1');
-    res.json({ success: true, message: 'PCTE Alumni API & Database connected successfully.' });
+    res.json({
+      success: true,
+      message: 'PCTE Alumni API & Database operational.',
+      storage: db.isPostgresActive ? 'Cloud PostgreSQL Database' : 'Active In-Memory Storage'
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'API is running, but Database connection failed.', error: error.message });
+    res.status(500).json({ success: false, message: 'API is running, but database check failed.', error: error.message });
   }
 });
 
