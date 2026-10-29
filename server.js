@@ -7,7 +7,7 @@ const apiRoutes = require('./routes/api');
 
 const app = express();
 
-// Enable CORS for all origins so frontend on GitHub Pages, Vercel, localhost can connect cleanly
+// Enable CORS for all origins (GitHub Pages, localhost, custom domains)
 app.use(cors({
   origin: true,
   credentials: true
@@ -16,16 +16,15 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve frontend files (supporting both root and frontend/ subdirectory)
-app.use(express.static(path.join(__dirname, '../')));
-app.use(express.static(path.join(__dirname, '../frontend')));
-
-// API Routes
-app.use('/api', apiRoutes);
+// Cloud Health check probes (always return HTTP 200 for Render / cloud deployment checks)
+app.get(['/health', '/healthz'], (req, res) => {
+  res.status(200).json({ status: 'healthy', uptime: process.uptime() });
+});
 
 // Root route status info
 app.get('/', (req, res) => {
-  res.json({
+  res.status(200).json({
+    status: 'ok',
     success: true,
     message: '🚀 PCTE Alumni Backend API is active and running!',
     health: '/api/health',
@@ -39,6 +38,9 @@ app.get('/', (req, res) => {
     }
   });
 });
+
+// API Routes
+app.use('/api', apiRoutes);
 
 // 404 handler for unmatched API routes
 app.use((req, res, next) => {
@@ -54,22 +56,26 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Internal server error.' });
 });
 
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, async () => {
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully.');
+  process.exit(0);
+});
+
+// Start Server - Bind strictly to 0.0.0.0 so Render port scanner detects it immediately
+const PORT = Number(process.env.PORT) || 5000;
+const HOST = '0.0.0.0';
+
+app.listen(PORT, HOST, async () => {
   console.log(`===============================================`);
-  console.log(`🚀 PCTE Alumni Backend running on port ${PORT}`);
-  console.log(`🔗 Local URL: http://localhost:${PORT}`);
-  console.log(`📡 API Health: http://localhost:${PORT}/api/health`);
+  console.log(`🚀 PCTE Alumni Backend running on http://${HOST}:${PORT}`);
+  console.log(`📡 API Health: http://${HOST}:${PORT}/api/health`);
   console.log(`===============================================`);
 
-  // Verify DB connection and auto-prime schema
   try {
     await db.query('SELECT 1');
-    console.log(`✅ PostgreSQL Database connected.`);
     await db.initSchema();
   } catch (err) {
-    console.warn(`⚠️ PostgreSQL connection check: ${err.message}`);
-    console.warn(`💡 Tip: Check your DATABASE_URL environment variable.`);
+    console.warn(`Startup DB check: ${err.message}`);
   }
 });
